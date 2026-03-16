@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sinan — Fotoğraf & Portfolyo</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #FAFAF8;
+  --bg-alt: #F2F1ED;
+  --text: #1A1A18;
+  --text-secondary: #6B6B65;
+  --text-muted: #9E9E96;
+  --accent: #2C2C2A;
+  --border: #E5E4E0;
+  --card-bg: #FFFFFF;
+  --overlay: rgba(26, 26, 24, 0.85);
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans: 'DM Sans', system-ui, sans-serif;
+  --transition: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html { scroll-behavior: smooth; font-size: 16px; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ── Selection ── */
+::selection { background: var(--accent); color: var(--bg); }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ── Loader ── */
+.loader {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.8s var(--transition), visibility 0.8s;
+}
+.loader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+.loader-line {
+  width: 60px; height: 1px; background: var(--border); position: relative; overflow: hidden;
+}
+.loader-line::after {
+  content: ''; position: absolute; left: -100%; top: 0;
+  width: 100%; height: 100%; background: var(--accent);
+  animation: loaderSlide 1.2s ease-in-out infinite;
+}
+@keyframes loaderSlide { to { left: 100%; } }
+
+/* ── Header ── */
+header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  padding: 1.5rem 3rem;
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(250, 250, 248, 0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.3s, padding 0.3s;
+}
+header.scrolled { border-bottom-color: var(--border); padding: 1rem 3rem; }
+
+.logo {
+  font-family: var(--serif);
+  font-size: 1.6rem;
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  color: var(--text);
+  text-decoration: none;
+  cursor: pointer;
+}
+.logo span { font-style: italic; font-weight: 400; }
+
+nav { display: flex; align-items: center; gap: 2.5rem; }
+nav a {
+  font-size: 0.82rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  text-decoration: none;
+  position: relative;
+  transition: color 0.3s;
+  cursor: pointer;
+}
+nav a::after {
+  content: ''; position: absolute; bottom: -4px; left: 0;
+  width: 0; height: 1px; background: var(--accent);
+  transition: width 0.4s var(--transition);
+}
+nav a:hover { color: var(--text); }
+nav a:hover::after, nav a.active::after { width: 100%; }
+nav a.active { color: var(--text); }
+
+.menu-toggle {
+  display: none; background: none; border: none; cursor: pointer;
+  width: 28px; height: 20px; position: relative;
+}
+.menu-toggle span {
+  display: block; width: 100%; height: 1px; background: var(--text);
+  position: absolute; left: 0; transition: all 0.3s var(--transition);
+}
+.menu-toggle span:nth-child(1) { top: 0; }
+.menu-toggle span:nth-child(2) { top: 50%; }
+.menu-toggle span:nth-child(3) { bottom: 0; }
+
+/* ── Sections ── */
+.section { display: none; min-height: 100vh; padding-top: 100px; }
+.section.active { display: block; }
+
+/* ── Hero ── */
+.hero {
+  height: 100vh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center;
+  padding: 2rem;
+  position: relative;
+}
+.hero-subtitle {
+  font-size: 0.75rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+  opacity: 0; transform: translateY(20px);
+  animation: fadeUp 0.8s var(--transition) 0.5s forwards;
+}
+.hero-title {
+  font-family: var(--serif);
+  font-size: clamp(2.8rem, 7vw, 5.5rem);
+  font-weight: 300;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.5rem;
+  opacity: 0; transform: translateY(30px);
+  animation: fadeUp 1s var(--transition) 0.7s forwards;
+}
+.hero-title em { font-style: italic; font-weight: 400; }
+.hero-desc {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  max-width: 420px;
+  font-weight: 300;
+  line-height: 1.7;
+  opacity: 0; transform: translateY(20px);
+  animation: fadeUp 0.8s var(--transition) 0.9s forwards;
+}
+.hero-scroll {
+  position: absolute; bottom: 3rem;
+  display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+  opacity: 0; animation: fadeUp 0.8s var(--transition) 1.2s forwards;
+}
+.hero-scroll span {
+  font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-muted);
+}
+.scroll-line {
+  width: 1px; height: 40px; background: var(--border); position: relative; overflow: hidden;
+}
+.scroll-line::after {
+  content: ''; position: absolute; top: -100%; left: 0;
+  width: 100%; height: 100%; background: var(--accent);
+  animation: scrollDown 2s ease-in-out infinite;
+}
+@keyframes scrollDown { 0% { top: -100%; } 50% { top: 0; } 100% { top: 100%; } }
+@keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+
+/* ── Search Bar ── */
+.search-container {
+  max-width: 500px;
+  margin: 0 auto 2rem;
+  position: relative;
+}
+.search-container input {
+  width: 100%;
+  padding: 0.85rem 1.2rem 0.85rem 2.8rem;
+  font-family: var(--sans);
+  font-size: 0.88rem;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--card-bg);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.3s;
+}
+.search-container input::placeholder { color: var(--text-muted); }
+.search-container input:focus { border-color: var(--accent); }
+.search-icon {
+  position: absolute; left: 1rem; top: 50%; transform: translateY(-50%);
+  color: var(--text-muted); pointer-events: none;
+}
+
+/* ── Filters ── */
+.filters {
+  display: flex; align-items: center; justify-content: center;
+  gap: 0.5rem; flex-wrap: wrap;
+  margin-bottom: 3rem;
+  padding: 0 2rem;
+}
+.filter-btn {
+  padding: 0.5rem 1.2rem;
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.3s var(--transition);
+  border-radius: 2px;
+}
+.filter-btn:hover { border-color: var(--accent); color: var(--text); }
+.filter-btn.active {
+  background: var(--accent); color: var(--bg); border-color: var(--accent);
+}
+
+/* ── Gallery Grid ── */
+.gallery-section { padding: 0 3rem 6rem; }
+.gallery-section .section-label {
+  text-align: center; margin-bottom: 2rem;
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.gallery-item {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 4/5;
+  cursor: pointer;
+  border-radius: 2px;
+}
+.gallery-item.wide { grid-column: span 2; aspect-ratio: 16/9; }
+
+.gallery-item img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform 0.8s var(--transition), filter 0.8s;
+  filter: grayscale(15%);
+}
+.gallery-item:hover img {
+  transform: scale(1.05);
+  filter: grayscale(0%);
+}
+.gallery-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 50%);
+  opacity: 0;
+  transition: opacity 0.5s;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 1.5rem;
+}
+.gallery-item:hover .gallery-overlay { opacity: 1; }
+.gallery-overlay h3 {
+  font-family: var(--serif);
+  font-size: 1.3rem;
+  font-weight: 400;
+  color: #fff;
+  margin-bottom: 0.25rem;
+}
+.gallery-overlay span {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.7);
+}
+
+/* ── Lightbox ── */
+.lightbox {
+  position: fixed; inset: 0; z-index: 200;
+  background: var(--overlay);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; visibility: hidden;
+  transition: all 0.4s var(--transition);
+  cursor: pointer;
+}
+.lightbox.active { opacity: 1; visibility: visible; }
+.lightbox img {
+  max-width: 90vw; max-height: 85vh;
+  object-fit: contain;
+  border-radius: 2px;
+  transform: scale(0.95);
+  transition: transform 0.5s var(--transition);
+}
+.lightbox.active img { transform: scale(1); }
+.lightbox-close {
+  position: absolute; top: 2rem; right: 2rem;
+  background: none; border: none;
+  color: #fff; font-size: 1.5rem; cursor: pointer;
+  opacity: 0.7; transition: opacity 0.3s;
+}
+.lightbox-close:hover { opacity: 1; }
+.lightbox-info {
+  position: absolute; bottom: 2.5rem; left: 50%; transform: translateX(-50%);
+  text-align: center; color: #fff;
+}
+.lightbox-info h3 {
+  font-family: var(--serif); font-size: 1.4rem; font-weight: 400; margin-bottom: 0.3rem;
+}
+.lightbox-info span {
+  font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: rgba(255,255,255,0.6);
+}
+
+/* ── About ── */
+.about-content {
+  max-width: 900px; margin: 0 auto;
+  padding: 4rem 3rem 6rem;
+  display: grid; grid-template-columns: 1fr 1.2fr; gap: 4rem;
+  align-items: start;
+}
+.about-image {
+  aspect-ratio: 3/4;
+  overflow: hidden;
+  border-radius: 2px;
+  position: relative;
+}
+.about-image img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(20%); }
+.about-image::after {
+  content: ''; position: absolute; inset: 0;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 2px;
+}
+.about-text h2 {
+  font-family: var(--serif);
+  font-size: 2.5rem;
+  font-weight: 300;
+  margin-bottom: 1.5rem;
+  line-height: 1.2;
+}
+.about-text h2 em { font-style: italic; }
+.about-text p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.8;
+  margin-bottom: 1.2rem;
+  font-weight: 300;
+}
+.about-stats {
+  display: flex; gap: 2.5rem; margin-top: 2rem;
+  padding-top: 2rem; border-top: 1px solid var(--border);
+}
+.stat-item .stat-num {
+  font-family: var(--serif);
+  font-size: 2rem;
+  font-weight: 300;
+  display: block;
+}
+.stat-item .stat-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ── Contact ── */
+.contact-content {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 4rem 3rem 6rem;
+  text-align: center;
+}
+.contact-content h2 {
+  font-family: var(--serif);
+  font-size: 2.8rem;
+  font-weight: 300;
+  margin-bottom: 0.8rem;
+}
+.contact-content h2 em { font-style: italic; }
+.contact-content > p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin-bottom: 3rem;
+  font-weight: 300;
+}
+.contact-form { text-align: left; }
+.form-group { margin-bottom: 1.5rem; }
+.form-group label {
+  display: block;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 0.85rem 0;
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.3s;
+  resize: none;
+}
+.form-group input:focus,
+.form-group textarea:focus { border-bottom-color: var(--accent); }
+.form-group textarea { min-height: 120px; line-height: 1.7; }
+
+.submit-btn {
+  display: inline-flex; align-items: center; gap: 0.8rem;
+  padding: 1rem 2.5rem;
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s var(--transition);
+  border-radius: 2px;
+  margin-top: 0.5rem;
+}
+.submit-btn:hover { opacity: 0.85; gap: 1.2rem; }
+.submit-btn svg { transition: transform 0.3s; }
+.submit-btn:hover svg { transform: translateX(3px); }
+
+/* ── Footer ── */
+footer {
+  padding: 3rem;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+}
+footer a { color: var(--text-secondary); text-decoration: none; transition: color 0.3s; }
+footer a:hover { color: var(--text); }
+.footer-socials { display: flex; gap: 1.5rem; }
+
+/* ── No results ── */
+.no-results {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  display: none;
+}
+
+/* ── Animate in ── */
+.reveal {
+  opacity: 0; transform: translateY(30px);
+  transition: opacity 0.8s var(--transition), transform 0.8s var(--transition);
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  header { padding: 1.2rem 1.5rem; }
+  header.scrolled { padding: 1rem 1.5rem; }
+  nav { 
+    display: none; position: fixed; inset: 0; 
+    background: var(--bg); z-index: 99;
+    flex-direction: column; align-items: center; justify-content: center;
+    gap: 2rem;
+  }
+  nav.open { display: flex; }
+  nav a { font-size: 1.1rem; }
+  .menu-toggle { display: block; z-index: 100; }
+  .gallery { grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+  .gallery-item.wide { grid-column: span 2; }
+  .gallery-section { padding: 0 1.5rem 4rem; }
+  .about-content { grid-template-columns: 1fr; gap: 2rem; padding: 2rem 1.5rem 4rem; }
+  .contact-content { padding: 2rem 1.5rem 4rem; }
+  .hero-title { font-size: clamp(2rem, 8vw, 3.5rem); }
+  footer { flex-direction: column; gap: 1rem; text-align: center; }
+}
+
+/* ── Toast ── */
+.toast {
+  position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--accent); color: var(--bg);
+  padding: 0.85rem 1.8rem;
+  font-size: 0.82rem; letter-spacing: 0.04em;
+  border-radius: 2px;
+  opacity: 0; transition: all 0.4s var(--transition);
+  z-index: 300;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- Loader -->
+<div class="loader" id="loader">
+  <div class="loader-line"></div>
+</div>
+
+<!-- Header -->
+<header id="header">
+  <a class="logo" onclick="navigateTo('portfolio')">S<span>inan</span></a>
+  <nav id="nav">
+    <a onclick="navigateTo('portfolio')" class="active" data-section="portfolio">Portfolyo</a>
+    <a onclick="navigateTo('about')" data-section="about">Hakkımda</a>
+    <a onclick="navigateTo('contact')" data-section="contact">İletişim</a>
+  </nav>
+  <button class="menu-toggle" id="menuToggle" aria-label="Menü">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightboxImg" src="" alt="">
+  <div class="lightbox-info">
+    <h3 id="lightboxTitle"></h3>
+    <span id="lightboxCat"></span>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ════ PORTFOLIO ════ -->
+<section class="section active" id="section-portfolio">
+  <div class="hero">
+    <p class="hero-subtitle">Fotoğraf · Portfolyo · Blog</p>
+    <h1 class="hero-title">Anları<br><em>Yakalıyorum</em></h1>
+    <p class="hero-desc">Her karenin ardında bir hikâye var. Işık, gölge ve duyguyu bir arada yakalayan fotoğraflarımı keşfedin.</p>
+    <div class="hero-scroll">
+      <span>Keşfet</span>
+      <div class="scroll-line"></div>
+    </div>
+  </div>
+
+  <div class="gallery-section">
+    <div class="search-container">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input type="text" id="searchInput" placeholder="Fotoğraf ara..." oninput="filterGallery()">
+    </div>
+
+    <div class="filters">
+      <button class="filter-btn active" onclick="setFilter('all')">Tümü</button>
+      <button class="filter-btn" onclick="setFilter('portre')">Portre</button>
+      <button class="filter-btn" onclick="setFilter('manzara')">Manzara</button>
+      <button class="filter-btn" onclick="setFilter('sokak')">Sokak</button>
+      <button class="filter-btn" onclick="setFilter('mimari')">Mimari</button>
+    </div>
+
+    <div class="gallery" id="gallery"></div>
+    <div class="no-results" id="noResults">Aramanızla eşleşen fotoğraf bulunamadı.</div>
+  </div>
+</section>
+
+<!-- ════ ABOUT ════ -->
+<section class="section" id="section-about">
+  <div class="about-content">
+    <div class="about-image reveal">
+      <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=800&fit=crop&crop=face" alt="Sinan">
+    </div>
+    <div class="about-text">
+      <h2 class="reveal">Merhaba, ben <em>Sinan</em></h2>
+      <p class="reveal">Fotoğrafla tanışmam yıllar önce İstanbul sokaklarında başladı. O günden bu yana objektifimle gördüğüm dünyayı paylaşmak en büyük tutkum oldu.</p>
+      <p class="reveal">Her projede ışığın ve gölgenin dansını yakalamaya, anın duygusunu dondurmaya çalışıyorum. Minimalist bir bakış açısıyla, karmaşanın içindeki sadeliği arıyorum.</p>
+      <p class="reveal">Portre, manzara, sokak fotoğrafçılığı ve mimari çekimler üzerine çalışıyorum. İstanbul merkezli olarak hem yerel hem uluslararası projelerde yer alıyorum.</p>
+      <div class="about-stats reveal">
+        <div class="stat-item">
+          <span class="stat-num">8+</span>
+          <span class="stat-label">Yıl Deneyim</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">200+</span>
+          <span class="stat-label">Proje</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">15</span>
+          <span class="stat-label">Ödül</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ CONTACT ════ -->
+<section class="section" id="section-contact">
+  <div class="contact-content">
+    <h2 class="reveal">Birlikte <em>Çalışalım</em></h2>
+    <p class="reveal">Bir projeniz mi var? Fotoğraf çekimi, iş birliği veya sadece merhaba demek için yazın.</p>
+    <div class="contact-form">
+      <div class="form-group reveal">
+        <label>Ad Soyad</label>
+        <input type="text" id="contactName" placeholder="Adınızı girin">
+      </div>
+      <div class="form-group reveal">
+        <label>E-posta</label>
+        <input type="email" id="contactEmail" placeholder="E-posta adresiniz">
+      </div>
+      <div class="form-group reveal">
+        <label>Konu</label>
+        <input type="text" id="contactSubject" placeholder="Proje hakkında kısaca">
+      </div>
+      <div class="form-group reveal">
+        <label>Mesaj</label>
+        <textarea id="contactMessage" placeholder="Mesajınızı yazın..."></textarea>
+      </div>
+      <button class="submit-btn reveal" onclick="submitForm()">
+        Gönder
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <span>© 2026 Sinan — Tüm hakları saklıdır.</span>
+  <div class="footer-socials">
+    <a href="#">Instagram</a>
+    <a href="#">Twitter</a>
+    <a href="#">Behance</a>
+  </div>
+</footer>
+
+<script>
+// ── Photo Data ──
+const photos = [
+  { id: 1, title: 'Sessiz Bakış', category: 'portre', src: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=600&h=750&fit=crop', wide: false },
+  { id: 2, title: 'İstanbul Silüeti', category: 'manzara', src: 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=900&h=500&fit=crop', wide: true },
+  { id: 3, title: 'Sokak Melodisi', category: 'sokak', src: 'https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=600&h=750&fit=crop', wide: false },
+  { id: 4, title: 'Geometri', category: 'mimari', src: 'https://images.unsplash.com/photo-1511818966892-d7d671e672a2?w=600&h=750&fit=crop', wide: false },
+  { id: 5, title: 'Altın Saat', category: 'manzara', src: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=750&fit=crop', wide: false },
+  { id: 6, title: 'Gölgeler', category: 'portre', src: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=900&h=500&fit=crop', wide: true },
+  { id: 7, title: 'Yağmur Sonrası', category: 'sokak', src: 'https://images.unsplash.com/photo-1476903930099-d4183da0fcd8?w=600&h=750&fit=crop', wide: false },
+  { id: 8, title: 'Modern Çizgiler', category: 'mimari', src: 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&h=750&fit=crop', wide: false },
+  { id: 9, title: 'Duman', category: 'portre', src: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=600&h=750&fit=crop', wide: false },
+  { id: 10, title: 'Boğaz Köprüsü', category: 'manzara', src: 'https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?w=900&h=500&fit=crop', wide: true },
+  { id: 11, title: 'Kahve Molası', category: 'sokak', src: 'https://images.unsplash.com/photo-1445116572660-236099ec97a0?w=600&h=750&fit=crop', wide: false },
+  { id: 12, title: 'Beton & Cam', category: 'mimari', src: 'https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=600&h=750&fit=crop', wide: false },
+];
+
+let currentFilter = 'all';
+let searchQuery = '';
+
+// ── Render Gallery ──
+function renderGallery() {
+  const gallery = document.getElementById('gallery');
+  const noResults = document.getElementById('noResults');
+
+  let filtered = photos;
+  if (currentFilter !== 'all') {
+    filtered = filtered.filter(p => p.category === currentFilter);
+  }
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    filtered = filtered.filter(p =>
+      p.title.toLowerCase().includes(q) || p.category.toLowerCase().includes(q)
+    );
+  }
+
+  if (filtered.length === 0) {
+    gallery.innerHTML = '';
+    noResults.style.display = 'block';
+    return;
+  }
+
+  noResults.style.display = 'none';
+  gallery.innerHTML = filtered.map((p, i) => `
+    <div class="gallery-item ${p.wide ? 'wide' : ''} reveal"
+         style="transition-delay: ${i * 0.06}s"
+         onclick="openLightbox('${p.src}', '${p.title}', '${p.category}')">
+      <img src="${p.src}" alt="${p.title}" loading="lazy">
+      <div class="gallery-overlay">
+        <h3>${p.title}</h3>
+        <span>${capitalize(p.category)}</span>
+      </div>
+    </div>
+  `).join('');
+
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.gallery-item.reveal').forEach(el => {
+      el.classList.add('visible');
+    });
+  });
+}
+
+function capitalize(s) {
+  const map = { portre: 'Portre', manzara: 'Manzara', sokak: 'Sokak', mimari: 'Mimari' };
+  return map[s] || s;
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderGallery();
+}
+
+function filterGallery() {
+  searchQuery = document.getElementById('searchInput').value;
+  renderGallery();
+}
+
+// ── Lightbox ──
+function openLightbox(src, title, category) {
+  const lb = document.getElementById('lightbox');
+  document.getElementById('lightboxImg').src = src.replace(/w=\d+/, 'w=1200').replace(/h=\d+/, 'h=900');
+  document.getElementById('lightboxTitle').textContent = title;
+  document.getElementById('lightboxCat').textContent = capitalize(category);
+  lb.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('active');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+// ── Navigation ──
+function navigateTo(section) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('section-' + section).classList.add('active');
+  document.querySelectorAll('nav a').forEach(a => {
+    a.classList.toggle('active', a.dataset.section === section);
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Close mobile nav
+  document.getElementById('nav').classList.remove('open');
+  // Trigger reveals
+  setTimeout(triggerReveals, 100);
+}
+
+// ── Mobile Menu ──
+document.getElementById('menuToggle').addEventListener('click', () => {
+  document.getElementById('nav').classList.toggle('open');
+});
+
+// ── Scroll Header ──
+window.addEventListener('scroll', () => {
+  document.getElementById('header').classList.toggle('scrolled', window.scrollY > 50);
+});
+
+// ── Reveal on scroll ──
+function triggerReveals() {
+  const reveals = document.querySelectorAll('.reveal:not(.visible)');
+  reveals.forEach(el => {
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight - 60) {
+      el.classList.add('visible');
+    }
+  });
+}
+window.addEventListener('scroll', triggerReveals);
+
+// ── Contact Form ──
+function submitForm() {
+  const name = document.getElementById('contactName').value.trim();
+  const email = document.getElementById('contactEmail').value.trim();
+  const message = document.getElementById('contactMessage').value.trim();
+  if (!name || !email || !message) {
+    showToast('Lütfen tüm alanları doldurun.');
+    return;
+  }
+  showToast('Mesajınız gönderildi! En kısa sürede dönüş yapacağım.');
+  document.getElementById('contactName').value = '';
+  document.getElementById('contactEmail').value = '';
+  document.getElementById('contactSubject').value = '';
+  document.getElementById('contactMessage').value = '';
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// ── Init ──
+window.addEventListener('load', () => {
+  setTimeout(() => document.getElementById('loader').classList.add('hidden'), 600);
+  renderGallery();
+  setTimeout(triggerReveals, 200);
+});
+</script>
+</body>
+</html>
